@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+
+from nltk.corpus import wordnet as wn
+import argparse
+from json import dumps
+
+parser = argparse.ArgumentParser(description='Wordnet command line tool.')
+parser.add_argument('--get','-get','--g','-g')
+parser.add_argument('--output','-output','--o','-o',action='store_true')
+args = parser.parse_args()
+
+class Wordnet:
+    def __init__(self):
+        pass
+
+    def hypernyms(self,word):
+        temp=[]
+        senses=wn.synsets(word)
+        for sense in senses:
+            hypernyms=sense.hypernyms()
+            for hypernym in hypernyms:
+                name=hypernym.lemma_names()[0]
+                if(not name in temp):temp.append(name)
+        return temp
+
+    def hyponyms(self,word):
+        temp=[]
+        senses=wn.synsets(word)
+        for sense in senses:
+            hyponyms=sense.hyponyms()
+            for hyponym in hyponyms:
+                name=hyponym.lemma_names()[0]
+                if(not name in temp):temp.append(name)
+        return temp
+
+    def sisters(self,word):
+        temp=[]
+        hypernyms=self.hypernyms(word)
+        for hypernym in hypernyms:
+            hyponyms=self.hyponyms(hypernym)
+            temp+=hyponyms
+        return temp
+
+    def connections(self,word):
+        hyper=self.hypernyms(word)
+        hypo=self.hyponyms(word)
+        sister=self.sisters(word)
+        connections={
+            'hypernyms':hyper,
+            'hyponyms':hypo,
+            'sisters':sister,
+            'word':word
+        }
+        if(args.output):print(dumps(connections))
+        return connections
+
+def main():
+    wordnet=Wordnet()
+    if(args.get==None):
+        print("No request made")
+        return False
+    wordnet.connections(args.get)
+
+if(__name__=="__main__"):
+    main()
